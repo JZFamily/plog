@@ -10,10 +10,10 @@
 //////////////////////////////////////////////////////////////////////////
 // Helper macros that get context info
 
-#if _MSC_VER >= 1600 && !defined(__INTELLISENSE__) // >= Visual Studio 2010 and skip IntelliSense
+#if defined(_MSC_VER) && _MSC_VER >= 1600 && !defined(__INTELLISENSE__) && !defined(__INTEL_COMPILER) && !defined(__llvm__) // >= Visual Studio 2010, skip IntelliSense, Intel Compiler and Clang Code Model
 #   define PLOG_GET_THIS()      __if_exists(this) { this } __if_not_exists(this) { 0 }
 #else
-#   define PLOG_GET_THIS()      0
+#   define PLOG_GET_THIS()      reinterpret_cast<void*>(0)
 #endif
 
 #ifdef _MSC_VER
@@ -24,7 +24,7 @@
 #   define PLOG_GET_FUNC()      __PRETTY_FUNCTION__
 #endif
 
-#if PLOG_CAPTURE_FILE
+#ifdef PLOG_CAPTURE_FILE
 #   define PLOG_GET_FILE()      __FILE__
 #else
 #   define PLOG_GET_FILE()      ""
@@ -39,7 +39,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Main logging macros
 
-#define LOG_(instance, severity)        IF_LOG_(instance, severity) (*plog::get<instance>()) += plog::Record(severity, PLOG_GET_FUNC(), __LINE__, PLOG_GET_FILE(), PLOG_GET_THIS())
+#define LOG_(instance, severity)        IF_LOG_(instance, severity) (*plog::get<instance>()) += plog::Record(severity, PLOG_GET_FUNC(), __LINE__, PLOG_GET_FILE(), PLOG_GET_THIS()).ref()
 #define LOG(severity)                   LOG_(PLOG_DEFAULT_INSTANCE, severity)
 
 #define LOG_VERBOSE                     LOG(plog::verbose)

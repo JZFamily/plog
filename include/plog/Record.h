@@ -58,6 +58,9 @@ namespace plog
             template <class T, class Stream>
             struct isStreamable
             {
+#ifdef __INTEL_COMPILER
+#    pragma warning(suppress: 327) // NULL reference is not allowed
+#endif
                 enum { value = sizeof(operator<<(*reinterpret_cast<Stream*>(0), *reinterpret_cast<const T*>(0))) != sizeof(char) };
             };
 
@@ -105,6 +108,11 @@ namespace plog
             util::ftime(&m_time);
         }
 
+        Record& ref() 
+        { 
+            return *this; 
+        }
+
         //////////////////////////////////////////////////////////////////////////
         // Stream output operators
 
@@ -135,11 +143,17 @@ namespace plog
 #ifdef QT_VERSION
         Record& operator<<(const QString& data)
         {
-#ifdef _WIN32
+#   ifdef _WIN32
             return *this << data.toStdWString();
-#else
+#   else
             return *this << data.toStdString();
-#endif
+#   endif
+        }
+
+        Record& operator<<(const QStringRef& data)
+        {
+            QString qstr;
+            return *this << qstr.append(data);
         }
 #endif
 
